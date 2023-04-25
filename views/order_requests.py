@@ -86,17 +86,36 @@ def create_order(new_order):
     return new_order
 
 def delete_order(id):
-    """This function deletes orders obvi"""
-    order_index = -1
-    for index, order in enumerate(ORDERS):
-        if order["id"] == id:
-            order_index = index
-    if order_index >= 0:
-        ORDERS.pop(order_index)
+    """This function deletes orders from SQL"""
+    with sqlite3.connect("./kneeldiamonds.sqlite3") as conn:
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        DELETE FROM Orders
+        WHERE id = ?
+        """, (id, ))
+
+
 
 def update_order(id, new_order):
-    """PUT/replace things!"""
-    for index, order in enumerate(ORDERS):
-        if order["id"] == id:
-            ORDERS[index] = new_order
-            break
+    """Update with SQL!"""
+    with sqlite3.connect("./kneeldiamonds.sqlite3") as conn:
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        UPDATE Orders
+            SET
+                metal_id = ?,
+                size_id = ?,
+                style_id = ?,
+                timestamp = ?
+        WHERE id = ?
+        """, (new_order['metal_id'],
+            new_order['size_id'], new_order['style_id'], new_order['timestamp'], id, ))
+
+        rows_affected = db_cursor.rowcount
+
+    if rows_affected == 0:
+        return False
+    else:
+        return True

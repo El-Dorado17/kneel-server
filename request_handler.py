@@ -58,11 +58,11 @@ class HandleRequests(BaseHTTPRequestHandler):
 
     def do_POST(self):
         """Handles POST requests to the server """
-        self._set_headers(201)
+        #self._set_headers(201)
         content_len = int(self.headers.get('content-length', 0))
         post_body = self.rfile.read(content_len)
         # response = { "payload" : post_body }
-        
+
         post_body = json.loads(post_body)
         # Parse the URL
         (resource, id) = self.parse_url(self.path)
@@ -80,7 +80,6 @@ class HandleRequests(BaseHTTPRequestHandler):
             new_order = create_metal(post_body)
             self.wfile.write(json.dumps(new_metal).encode())
         if resource == "orders":
-            new_order = create_order(post_body)
             self.wfile.write(json.dumps(new_order).encode())
         if resource == "sizes":
             new_size = create_size(post_body)
@@ -114,23 +113,29 @@ class HandleRequests(BaseHTTPRequestHandler):
 
     def do_PUT(self):
         """Handles PUT requests to the server """
-        self._set_headers(204)
+        #self._set_headers(204)
         content_len = int(self.headers.get('content-length', 0))
         post_body = self.rfile.read(content_len)
         post_body = json.loads(post_body)
 
         # Parse the URL
         (resource, id) = self.parse_url(self.path)
+        success = False
 
         # Delete a single animal from the list
         if resource == "metals":
             update_metal(id, post_body)
         if resource == "orders":
-            update_order(id, post_body)
+            success = update_order(id, post_body)
         if resource == "sizes":
             update_size(id, post_body)
         if resource == "styles":
             update_style(id, post_body)
+
+        if success:
+            self._set_headers(204)
+        else:
+            self._set_headers(404)
 
         # Encode the new animal and send in response
         self.wfile.write("".encode())
