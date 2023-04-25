@@ -1,3 +1,8 @@
+import sqlite3
+from models import Order
+
+
+
 ORDERS = [
         {
             "id": 1,
@@ -9,25 +14,76 @@ ORDERS = [
     ]
 
 def get_all_orders():
-    """this function returns a list all orders and their properties"""
-    return ORDERS
+    """this function returns all Orders from SQL"""
+    with sqlite3.connect("./kneeldiamonds.sqlite3") as conn:
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        SELECT
+            o.id,
+            o.metal_id,
+            o.size_id,
+            o.style_id,
+            o.timestamp
+        FROM Orders o
+        """)
+
+        orders = []
+
+        dataset = db_cursor.fetchall()
+
+        for row in dataset:
+            order = Order(row['id'], row['metal_id'], row['size_id'],
+                        row['style_id'], row['timestamp'])
+
+            orders.append(order.__dict__)
+
+    return orders
 
 def get_single_order(id):
-    """gets single order"""
-    requested_order = None
-    for order in ORDERS:
-        if order["id"] == id:
-            requested_order = order
-    return requested_order
+    """gets single order from SQL db"""
+    with sqlite3.connect("./kneeldiamonds.sqlite3") as conn:
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
 
-def create_order(order):
-    """This function is in charge of adding a new order to the list!"""
-    # Get the id value of the last order in the list
-    max_id = ORDERS[-1]["id"]
-    new_id = max_id + 1
-    order["id"] = new_id
-    ORDERS.append(order)
-    return order
+        db_cursor.execute("""
+        SELECT
+            o.id,
+            o.metal_id,
+            o.size_id,
+            o.style_id,
+            o.timestamp
+        FROM Orders o
+        WHERE o.id = ?
+        """, ( id, ))
+
+        data = db_cursor.fetchone()
+
+
+        order = Order(data['id'], data['metal_id'], data['size_id'],
+                            data['style_id'], data['timestamp'])
+
+    return order.__dict__
+
+def create_order(new_order):
+    """This function is in charge of adding a new order w SQL!"""
+    with sqlite3.connect("./kennel.sqlite3") as conn:
+        db_cursor = conn.cursor()
+#!Terminal says no such table Orders...? line 74
+        db_cursor.execute("""
+        INSERT INTO Orders
+            ( metal_id, size_id, style_id, timestamp )
+        VALUES
+            ( ?, ?, ?, ?);
+        """, (new_order['metal_id'], new_order['size_id'],
+            new_order['style_id'], new_order['timestamp'], ))
+
+        id = db_cursor.lastrowid
+
+        new_order['id'] = id
+
+    return new_order
 
 def delete_order(id):
     """This function deletes orders obvi"""
