@@ -1,7 +1,6 @@
 class Size():
     """test"""
-    def __init__(self, id, size, carets, price):
+    def __init__(self, id, carets, price):
         self.id = id
-        self.size = size
         self.carets = carets
         self.price = price

@@ -1,5 +1,8 @@
 import sqlite3
 from models import Order
+from models import Size
+from models import Style
+from models import Metal
 
 
 
@@ -25,8 +28,17 @@ def get_all_orders():
             o.metal_id,
             o.size_id,
             o.style_id,
-            o.timestamp
-        FROM Orders o
+            o.timestamp,
+            m.metal,
+            m.price,
+            s.carets,
+            s.price,
+            y.style,
+            y.price
+        FROM `Orders` o
+        JOIN Metals m ON m.id = o.metal_id,
+        JOIN Sizes s ON s.id = s.size_id,
+        JOIN Styles y ON y.id = y.style_id
         """)
 
         orders = []
@@ -36,8 +48,14 @@ def get_all_orders():
         for row in dataset:
             order = Order(row['id'], row['metal_id'], row['size_id'],
                         row['style_id'], row['timestamp'])
+            size = Size(row['carets'], row['price'])
+            style = Style(row['style'], row['price'])
+            metal = Metal(row['metal'], row['price'])
 
             orders.append(order.__dict__)
+            sizes.append(size.__dict__)
+            styles.append(style.__dict__)
+            metals.append(metal.__dict__)
 
     return orders
 
@@ -72,7 +90,7 @@ def create_order(new_order):
         db_cursor = conn.cursor()
 #!Terminal says no such table Orders...? line 74
         db_cursor.execute("""
-        INSERT INTO Orders
+        INSERT INTO `Orders`
             ( metal_id, size_id, style_id, timestamp )
         VALUES
             ( ?, ?, ?, ?);
